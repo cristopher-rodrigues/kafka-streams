@@ -1,0 +1,31 @@
+{
+	"type": "record",
+	"name": "inputTopic4",
+	"namespace": "com.company",
+	"fields": [{
+		"name": "payload",
+		"type": {
+			"type": "array",
+			"items": [{
+				"type": "record",
+				"name": "com.company.foo",
+				"fields": [{
+					"name": "bar",
+					"type": "string"
+				}]
+			}, {
+				"type": "record",
+				"name": "com.company.bar",
+				"fields": [{
+					"name": "foo",
+					"type": "string"
+				}]
+			}]
+		}
+	}]
+} # ctlr+J
+
+kafka-avro-console-producer --broker-list localhost:9092 --topic inputTopic4 \
+    --property value.schema='{ "type": "record", "name": "inputTopic4", "namespace": "com.company", "fields": [{ "name": "payload", "type": { "type": "array", "items": [{ "type": "record", "name": "com.company.foo", "fields": [{ "name": "bar", "type": "string" }] }, { "type": "record", "name": "com.company.bar", "fields": [{ "name": "foo", "type": "string" }] }] } }] }'
+
+{"payload":[{"com.company.foo":{"bar":"test"}}]}

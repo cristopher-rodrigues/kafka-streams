@@ -20,14 +20,41 @@ object Main extends App {
    val KAFKA_BROKER="broker:29092"
    val KAFKA_REGISTRY_ENDPOINT="http://kafka-schema-registry:8081"
 
-   private val inputTopic = "inputTopic4"
+    val schemaAVSC = """
+      {"namespace": "com.company",
+         "type": "record",
+         "name": "WikiFeed",
+         "fields": [
+            {"name": "user", "type": "string"},
+            {"name": "is_new", "type": "boolean"},
+            {"name": "content", "type": ["string", "null"]}
+         ]
+         }
+    """
+
+    val schema: Schema = new Schema.Parser().parse(schemaAVSC)
+    
+   private val inputTopic = "inputTopic"
    private val outputTopic = "output-topic"
-   
+
+    val record: GenericRecord = {
+      val r = new GenericData.Record(schema)
+      r.put("user", "alice")
+      r.put("is_new", true)
+      r.put("content", "lorem ipsum")
+      r
+    }
+    
+   //  val inputValues: Seq[GenericRecord] = Seq(record)
+
+    //
+    // Step 1: Configure and start the processor topology.
+    //
     val builder = new StreamsBuilder
 
     val streamsConfiguration: Properties = {
       val p = new Properties()
-      p.put(StreamsConfig.APPLICATION_ID_CONFIG, inputTopic)
+      p.put(StreamsConfig.APPLICATION_ID_CONFIG, "generic-avro-scala-integration-test")
       p.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, KAFKA_BROKER)
       p.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, KAFKA_REGISTRY_ENDPOINT)
       p.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
@@ -42,23 +69,24 @@ object Main extends App {
       gas
     }
 
-    val values = builder.stream[String, GenericRecord](inputTopic)
+    // Write the input data as-is to the output topic.
+   //  builder.stream[String, GenericRecord](inputTopic).to(outputTopic)
+
+   //  val streams: KafkaStreams = new KafkaStreams(builder.build(), streamsConfiguration)
+   //  streams.start()
+
+    val values = builder.stream[String, String]("values")
+
+      //   .map[String, GenericRecord]((key, value) => (new KeyValue(Key(key), Value(Seq(new Name(name = "dsds"))))))
 
     values
-        .map[String, GenericRecord]((k, v) => {
-            println("__________________________________________")
-            println(v)
-            println("__________________________________________")
+        .map[String, GenericRecord]((key, _) => ("123", record))
+        .to(inputTopic)
 
-            (k,v)
-            // new KeyValue(k, v)
-        })
 
-    val streams: KafkaStreams = new KafkaStreams(builder.build(), streamsConfiguration)
+   val streams: KafkaStreams = new KafkaStreams(builder.build(), streamsConfiguration)
 
-    streams.start()
-
-    // {"payload": [{"bar": "test"}]}
+   streams.start()
 
     //
     // Step 2: Produce some input data to the input topic.
