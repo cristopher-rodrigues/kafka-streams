@@ -14,11 +14,16 @@ val avroSerde = "io.confluent" % "kafka-streams-avro-serde" % "4.1.0"
 val kafkaScala = "org.apache.kafka" %% "kafka-streams-scala" % kafkaVer
 val logback = "ch.qos.logback" % "logback-classic" % "1.1.3" % Runtime
 
+val jacksonBind = "com.fasterxml.jackson.core" % "jackson-databind" % "2.10.1"
+// val jackson = "com.fasterxml.jackson.module" % "jackson-module-scala" % "2.0.2"
+
 libraryDependencies ++= Seq(
   kafkaStreams,
   avroSerializer,
   avro4s,
   avroSerde,
   logback,
+  jacksonBind,
+  // jackson,
   kafkaScala
 )

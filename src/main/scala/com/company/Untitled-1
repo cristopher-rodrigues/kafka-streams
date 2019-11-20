@@ -1,0 +1,77 @@
+Why are we changing the schema data model?
+
+1. To have semantic events
+2. Avoid using the cache and producing the whole fields everytime
+3. Only produce what matters to the event
+
+current schema model (CRUD):
+
+{
+    name: ["null", "string"],
+    icon: ["null", "string"],
+    created_at: ["null", "timestamp"],
+    updated_at: ["null", "timestamp"],
+    deleted_at: ["null", "timestamp"],
+    cloned_at: ["null", "timestamp"],
+    restored_at: ["null", "timestamp"],
+    ....
+}
+
+{
+    event: "updated",
+    payload: {
+        "name": ["null", "string"],
+        "icon": ["null", "string"],
+    },
+    happened_at: Timestamp
+} // { event:"update", {"icon":"new_icon", "name": null}}
+
+{
+    "name": "pipe_events",
+    "type":"record",
+    "namespace": "com.pipefy",
+    "version": "1",
+    "fields":[
+        {
+            "name":"payload",
+            "type":{
+                "type": "array",  
+                "items":[
+                {
+                    "name":"name",
+                    "type":"record",
+                    "fields":[
+                        {"name":"name", "type":"string"}
+                    ]
+                },
+                {
+                    "name":"icon",
+                    "type":"record",
+                    "fields":[
+                        {
+                            "name":"icon",
+                            "type": ["null", "string"]
+                        }
+                    ]
+                }
+                ]
+            }
+        }
+    ] 
+} // {"event": "update", "payload": [{"name": {"name": "new name"}}]}
+} // {"event": "update", "payload": [{"name": {"name": "new name"}}, {"icon": {"icon": null}}]}
+
+Monolith => 
+Connectors => 
+    - Array fields
+    - To deal with Conditional Logic (deal with different events)
+    - How the connectors will handle nullable fields
+
+
+first IDEA
+KSQL => read original EVENTS topic
+=> will out into a FLAT topic (KSQL is not able to deal with ARRAYs)
+
+1. Create a custom consumer on Portal
+2. Create a intermidiated stream 
+    -> consume the original topic and produce a flat output topic that will be consumed by the Connectors
