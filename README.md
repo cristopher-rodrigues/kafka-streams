@@ -1,4 +1,4 @@
-# Kafka Streams
+# Kafka Streams 
 
 FlatMap a nested array of Records
 
